@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Solar System Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0c0c1e 0%, #1a1a2e 50%, #16213e 100%);
+            color: white;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-theme {
+            background: linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #1a1a1a 100%);
+        }
+
+        /* Header Styles */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            z-index: 999;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #a74caf;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            color: #9e4caf;
+            text-shadow: 0 0 10px rgba(160, 76, 175, 0.4);
+        }
+
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+        }
+
+        .theme-btn {
+            background: linear-gradient(45deg,  #a74caf,#a74caf );
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(147, 76, 175, 0.3);
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(157, 76, 175, 0.5);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            height: 100vh;
+            width: 0;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%);
+            overflow-x: hidden;
+            overflow-y: auto;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            padding-top: 80px;
+            backdrop-filter: blur(15px);
+            border-right: 3px solid #a74caf;
+            box-shadow: 0 0 30px rgba(76, 175, 80, 0.3);
+        }
+
+        .sidebar.open {
+            width: 380px;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #a74caf;
+            border-radius: 4px;
+        }
+
+        .openbtn {
+            font-size: 18px;
+            cursor: pointer;
+            background: linear-gradient(45deg, rgba(0, 0, 0, 0.9), rgba(26, 26, 46, 0.9));
+            color: white;
+            padding: 15px 20px;
+            border: 2px solid #a74caf;
+            border-radius: 12px;
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            z-index: 1001;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 25px rgba(155, 76, 175, 0.3);
+        }
+
+        .openbtn:hover {
+            background: linear-gradient(45deg, #a74caf, #a74caf);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(170, 76, 175, 0.5);
+        }
+
+        .closebtn {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 36px;
+            color: #a74caf;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .closebtn:hover {
+            color: #ff4444;
+            transform: scale(1.2);
+        }
+
+        /* Sidebar Section Styles */
+        .sidebar-section {
+            margin-bottom: 30px;
+            padding: 0 25px;
+            color: white;
+        }
+
+        .sidebar-section h3 {
+            color: #a74caf;
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(168, 76, 175, 0.3);
+            padding-bottom: 8px;
+            text-shadow: 0 0 10px rgba(172, 76, 175, 0.5);
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(167, 76, 175, 0.2);
+        }
+
+        .control-group label {
+            display: block;
+            color: #e0e0e0;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 8px;
+            appearance: none;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(45deg, #a74caf, #9745a0);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(160, 76, 175, 0.4);
+        }
+
+        .control-group input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(45deg, #af4c99, #a04592);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 12px rgba(160, 76, 175, 0.4);
+        }
+
+        .speed-value {
+            color: #af4caf;
+            font-weight: bold;
+            min-width: 50px;
+            display: inline-block;
+            text-align: center;
+            background: rgba(76, 175, 80, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+
+        .sidebar-btn {
+            padding: 12px 16px;
+            background: linear-gradient(45deg, #af4c99, #9845a0);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+            margin: 3px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(175, 76, 149, 0.3);
+        }
+
+        .sidebar-btn:hover {
+            background: linear-gradient(45deg, #9d45a0, #af4c9d);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(175, 76, 157, 0.5);
+        }
+
+        .sidebar-btn:active {
+            transform: translateY(0);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* Main Content Styles */
+        #main {
+            transition: margin-left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 0;
+            min-height: 100vh;
+            padding-top: 70px;
+        }
+
+        #main.shifted {
+            margin-left: 380px;
+        }
+
+        .main-content {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 70px);
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .solar-system-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        /* Loading Screen Styles */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0c0c1e 0%, #1a1a2e 50%, #16213e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(76, 175, 80, 0.3);
+            border-top: 4px solid #af4caf;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-content h2 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: #af4c96;
+            text-shadow: 0 0 10px rgba(175, 76, 168, 0.5);
+        }
+
+        .sidebar-section ul {
+            color: #ccc;
+            font-size: 0.9em;
+            line-height: 1.8;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .sidebar-section ul li {
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            border-left: 3px solid #ac4caf;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.4em;
+            }
+
+            .sidebar.open {
+                width: 100vw;
+            }
+
+            #main.shifted {
+                margin-left: 0;
+            }
+
+            .openbtn {
+                padding: 12px 16px;
+                font-size: 16px;
+                top: 75px;
+                left: 15px;
+            }
+
+            .sidebar-section {
+                padding: 0 20px;
+            }
+        }
+
+        .sidebar-section {
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.open .sidebar-section {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .sidebar.open .sidebar-section:nth-child(1) { transition-delay: 0.1s; }
+        .sidebar.open .sidebar-section:nth-child(2) { transition-delay: 0.2s; }
+        .sidebar.open .sidebar-section:nth-child(3) { transition-delay: 0.3s; }
+        .sidebar.open .sidebar-section:nth-child(4) { transition-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1> Solar System Simulation</h1>
+        <div class="theme-toggle">
+            <button id="themeToggle" class="theme-btn">🌙</button>
+        </div>
+    </header>
+
+    <!-- Sidebar Menu Button -->
+    <button class="openbtn" id="openSidebarBtn">☰ </button>
+
+    <!-- Sidebar Menu -->
+    <div id="mySidebar" class="sidebar">
+        <a href="javascript:void(0)" class="closebtn" id="closeSidebarBtn">&times;</a>
+        
+        <!-- Master Controls -->
+        <div class="sidebar-section">
+            <h3>🌌</h3>
+            <div class="control-group">
+                <label for="master-speed">🚀 Overall Speed:</label>
+                <input type="range" id="master-speed" min="0" max="3" step="0.1" value="1">
+                <span id="master-speed-value" class="speed-value">1.0x</span>
+            </div>
+            <div class="button-group">
+                <button id="pause-all-btn" class="sidebar-btn">⏸️ Pause All</button>
+                <button id="reset-all-btn" class="sidebar-btn">🔄 Reset All</button>
+            </div>
+            <div class="button-group">
+                <button id="preset-slow-btn" class="sidebar-btn">🐌 Slow</button>
+                <button id="preset-normal-btn" class="sidebar-btn">⚡ Normal</button>
+                <button id="preset-fast-btn" class="sidebar-btn">🚀 Fast</button>
+            </div>
+        </div>
+
+        <!-- Camera Controls -->
+        <div class="sidebar-section">
+            <h3>📷 Camera Controls</h3>
+            <div class="button-group">
+                <button class="sidebar-btn" id="camera-reset-btn">🔄 Reset View</button>
+                <button class="sidebar-btn" id="camera-top-btn">⬆️ Top View</button>
+                <button class="sidebar-btn" id="camera-side-btn">➡️ Side View</button>
+            </div>
+            <div class="control-group">
+                <label for="camera-speed">📷 Camera Speed:</label>
+                <input type="range" id="camera-speed" min="0.1" max="2" step="0.1" value="1">
+                <span id="camera-speed-value" class="speed-value">1.0x</span>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="sidebar-section">
+            <h3>📖 Instructions</h3>
+            <ul>
+                <li>🖱️ Click and drag to rotate view</li>
+                <li>🔍 Scroll to zoom in/out</li>
+                <li>🪐 Number keys (1-8) to focus planets</li>
+                <li>⚡ Adjust speeds with sliders</li>
+                <li>⏸️ Spacebar to pause/resume</li>
+                <li>⌨️ Press 'Esc' to close menu</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main">
+        <!-- 3D Canvas Container -->
+        <div class="canvas-container">
+            <div id="solar-system-container" class="solar-system-container">
+                <!-- Solar system will be injected here -->
+            </div>
+        </div>
+        
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="loading-screen">
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <h2>Loading Solar System...</h2>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script>
+        // Corrected Solar System Class
+        class SolarSystem {
+            constructor() {
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+                this.renderer = new THREE.WebGLRenderer({ antialias: true });
+                this.controls = null;
+                
+                this.planets = [];
+                this.sun = null;
+                this.sunLight = null;
+                this.animationSpeed = 1;
+                this.paused = false;
+                this.isDarkTheme = false;
+                
+                this.init();
+            }
+            
+            init() {
+                // Setup renderer - Target specific container instead of body
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setClearColor(0x000011);
+                
+                // Find the container and append renderer
+                const container = document.getElementById('solar-system-container');
+                if (container) {
+                    container.appendChild(this.renderer.domElement);
+                } else {
+                    document.body.appendChild(this.renderer.domElement);
+                }
+                
+                // Setup camera
+                this.camera.position.set(0, 50, 100);
+                
+                // Add lights
+                this.addLights();
+                
+                // Create starfield
+                this.createStarfield();
+                
+                // Create sun and planets
+                this.createSun();
+                this.createPlanets();
+                
+                // Setup controls
+                this.setupControls();
+                
+                // Hide loading screen after everything is created
+                this.hideLoadingScreen();
+                
+                // Start animation
+                this.animate();
+                
+                // Handle window resize
+                window.addEventListener('resize', () => this.onWindowResize());
+            }
+            
+            hideLoadingScreen() {
+                setTimeout(() => {
+                    const loadingScreen = document.getElementById('loading-screen');
+                    if (loadingScreen) {
+                        loadingScreen.style.opacity = '0';
+                        setTimeout(() => {
+                            loadingScreen.style.display = 'none';
+                        }, 500);
+                    }
+                }, 500);
+            }
+            
+            addLights() {
+                // Ambient light
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.2);
+                this.scene.add(ambientLight);
+                
+                // Sun light - store reference for brightness control
+                this.sunLight = new THREE.PointLight(0xffffff, 2, 0, 2);
+                this.sunLight.position.set(0, 0, 0);
+                this.scene.add(this.sunLight);
+            }
+            
+            // New method to control sun brightness
+            setSunBrightness(isDark) {
+                this.isDarkTheme = isDark;
+                
+                if (this.sun && this.sunLight) {
+                    if (isDark) {
+                        // Make sun much brighter in dark theme
+                        this.sun.material.emissiveIntensity = 1.5;
+                        this.sunLight.intensity = 4;
+                        this.sun.material.emissive.setHex(0xffdd44);
+                        
+                        // Add a subtle glow effect
+                        this.sun.scale.set(1.2, 1.2, 1.2);
+                    } else {
+                        // Normal brightness in light theme
+                        this.sun.material.emissiveIntensity = 0.5;
+                        this.sunLight.intensity = 2;
+                        this.sun.material.emissive.setHex(0xffaa00);
+                        
+                        // Reset scale
+                        this.sun.scale.set(1, 1, 1);
+                    }
+                }
+            }
+            
+            createStarfield() {
+                const starsGeometry = new THREE.BufferGeometry();
+                const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1 });
+                
+                const starsVertices = [];
+                for (let i = 0; i < 10000; i++) {
+                    const x = (Math.random() - 0.5) * 2000;
+                    const y = (Math.random() - 0.5) * 2000;
+                    const z = (Math.random() - 0.5) * 2000;
+                    starsVertices.push(x, y, z);
+                }
+                
+                starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+                const stars = new THREE.Points(starsGeometry, starsMaterial);
+                this.scene.add(stars);
+            }
+            
+            createSun() {
+                const sunGeometry = new THREE.SphereGeometry(5, 32, 32);
+                const sunMaterial = new THREE.MeshBasicMaterial({ 
+                    color: 0xffff00,
+                    emissive: 0xffaa00,
+                    emissiveIntensity: 0.5
+                });
+                
+                this.sun = new THREE.Mesh(sunGeometry, sunMaterial);
+                this.scene.add(this.sun);
+            }
+            
+            createPlanets() {
+                const planetData = [
+                    { name: 'Mercury', size: 0.4, distance: 15, color: 0x8c7853, speed: 4.15 },
+                    { name: 'Venus', size: 0.9, distance: 20, color: 0xffc649, speed: 1.62 },
+                    { name: 'Earth', size: 1, distance: 25, color: 0x6b93d6, speed: 1.0 },
+                    { name: 'Mars', size: 0.5, distance: 30, color: 0xc1440e, speed: 0.53 },
+                    { name: 'Jupiter', size: 3, distance: 45, color: 0xd8ca9d, speed: 0.08 },
+                    { name: 'Saturn', size: 2.5, distance: 55, color: 0xfad5a5, speed: 0.03 },
+                    { name: 'Uranus', size: 1.5, distance: 65, color: 0x4fd0e4, speed: 0.01 },
+                    { name: 'Neptune', size: 1.4, distance: 75, color: 0x4b70dd, speed: 0.006 }
+                ];
+                
+                planetData.forEach((data, index) => {
+                    const planet = this.createPlanet(data);
+                    this.planets.push(planet);
+                    this.scene.add(planet.group);
+                    
+                    // Add orbit ring
+                    this.createOrbitRing(data.distance);
+                });
+            }
+
+            createPlanet(data) {
+                const geometry = new THREE.SphereGeometry(data.size, 16, 16);
+                const material = new THREE.MeshLambertMaterial({ color: data.color });
+                const mesh = new THREE.Mesh(geometry, material);
+                
+                // Create group for planet and its orbit
+                const group = new THREE.Group();
+                mesh.position.x = data.distance;
+                group.add(mesh);
+                
+                // Add moon for Earth
+                if (data.name === 'Earth') {
+                    const moonGeometry = new THREE.SphereGeometry(0.27, 8, 8);
+                    const moonMaterial = new THREE.MeshLambertMaterial({ color: 0x888888 });
+                    const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+                    moon.position.set(data.distance + 3, 0, 0);
+                    group.add(moon);
+                }
+                
+                // Add rings for Saturn
+                if (data.name === 'Saturn') {
+                    const ringGeometry = new THREE.RingGeometry(data.size * 1.2, data.size * 2, 32);
+                    const ringMaterial = new THREE.MeshBasicMaterial({ 
+                        color: 0xaaaaaa, 
+                        side: THREE.DoubleSide,
+                        transparent: true,
+                        opacity: 0.6
+                    });
+                    const rings = new THREE.Mesh(ringGeometry, ringMaterial);
+                    rings.rotation.x = Math.PI / 2;
+                    rings.position.x = data.distance;
+                    group.add(rings);
+                }
+                
+                return {
+                    group: group,
+                    mesh: mesh,
+                    data: data,
+                    angle: Math.random() * Math.PI * 2
+                };
+            }
+            
+            createOrbitRing(radius) {
+                const geometry = new THREE.RingGeometry(radius - 0.1, radius + 0.1, 64);
+                const material = new THREE.MeshBasicMaterial({ 
+                    color: 0x333333, 
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.3
+                });
+                const ring = new THREE.Mesh(geometry, material);
+                ring.rotation.x = Math.PI / 2;
+                this.scene.add(ring);
+            }
+            
+            setupControls() {
+                // Basic mouse controls for camera movement
+                let mouseDown = false;
+                let mouseX = 0;
+                let mouseY = 0;
+                
+                const canvas = this.renderer.domElement;
+                
+                canvas.addEventListener('mousedown', (event) => {
+                    mouseDown = true;
+                    mouseX = event.clientX;
+                    mouseY = event.clientY;
+                });
+                
+                canvas.addEventListener('mouseup', () => {
+                    mouseDown = false;
+                });
+                
+                canvas.addEventListener('mousemove', (event) => {
+                    if (mouseDown) {
+                        const deltaX = event.clientX - mouseX;
+                        const deltaY = event.clientY - mouseY;
+                        
+                        this.camera.position.x += deltaX * 0.1;
+                        this.camera.position.y -= deltaY * 0.1;
+                        
+                        mouseX = event.clientX;
+                        mouseY = event.clientY;
+                        
+                        this.camera.lookAt(0, 0, 0);
+                    }
+                });
+                
+                // Zoom with mouse wheel
+                canvas.addEventListener('wheel', (event) => {
+                    const scale = event.deltaY > 0 ? 1.1 : 0.9;
+                    this.camera.position.multiplyScalar(scale);
+                    this.camera.lookAt(0, 0, 0);
+                });
+            }
+            
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                
+                if (!this.paused) {
+                    // Rotate sun
+                    this.sun.rotation.y += 0.01 * this.animationSpeed;
+                    
+                    // Update planets
+                    this.planets.forEach((planet) => {
+                        // Orbit around sun
+                        planet.angle += planet.data.speed * 0.001 * this.animationSpeed;
+                        const x = Math.cos(planet.angle) * planet.data.distance;
+                        const z = Math.sin(planet.angle) * planet.data.distance;
+                        planet.group.position.set(x, 0, z);
+                        
+                        // Rotate planet
+                        planet.mesh.rotation.y += 0.02 * this.animationSpeed;
+                    });
+                }
+                
+                this.renderer.render(this.scene, this.camera);
+            }
+            
+            onWindowResize() {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+            
+            // Control methods
+            togglePause() {
+                this.paused = !this.paused;
+                return this.paused;
+            }
+            
+            setSpeed(speed) {
+                this.animationSpeed = speed;
+            }
+            
+            resetCamera() {
+                this.camera.position.set(0, 50, 100);
+                this.camera.lookAt(0, 0, 0);
+            }
+            
+            focusOnPlanet(planetName) {
+                const planet = this.planets.find(p => p.data.name === planetName);
+                if (planet) {
+                    const pos = planet.group.position;
+                    this.camera.position.set(pos.x + 10, pos.y + 10, pos.z + 10);
+                    this.camera.lookAt(pos.x, pos.y, pos.z);
+                }
+            }
+        }
+
+        // Initialize the solar system when the page loads
+        let solarSystem;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, initializing solar system...');
+            
+            try {
+                solarSystem = new SolarSystem();
+                console.log('Solar system initialized successfully');
+                
+                // Make it globally available
+                window.solarSystem = solarSystem;
+                
+            } catch (error) {
+                console.error('Error initializing solar system:', error);
+                
+                // Hide loading screen even if there's an error
+                setTimeout(() => {
+                    const loadingScreen = document.getElementById('loading-screen');
+                    if (loadingScreen) {
+                        loadingScreen.style.display = 'none';
+                    }
+                }, 1000);
+            }
+            
+            // Initialize controls
+            initializeControls();
+            
+            // Initialize sidebar
+            initializeSidebar();
+        });
+
+        // Sidebar functionality
+        function initializeSidebar() {
+            const openBtn = document.getElementById('openSidebarBtn');
+            const closeBtn = document.getElementById('closeSidebarBtn');
+            const sidebar = document.getElementById('mySidebar');
+            const main = document.getElementById('main');
+
+            function openSidebar() {
+                sidebar.classList.add('open');
+                main.classList.add('shifted');
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                main.classList.remove('shifted');
+            }
+
+            if (openBtn) {
+                openBtn.addEventListener('click', openSidebar);
+            }
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeSidebar);
+            }
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(event) {
+                switch(event.code) {
+                    case 'Escape':
+                        closeSidebar();
+                        break;
+                    case 'Space':
+                        event.preventDefault();
+                        if (solarSystem) {
+                            solarSystem.togglePause();
+                            updatePauseButton();
+                        }
+                        break;
+                    case 'KeyR':
+                        if (solarSystem) {
+                            solarSystem.resetCamera();
+                        }
+                        break;
+                    case 'Digit1':
+                        if (solarSystem) solarSystem.focusOnPlanet('Mercury');
+                        break;
+                    case 'Digit2':
+                        if (solarSystem) solarSystem.focusOnPlanet('Venus');
+                        break;
+                    case 'Digit3':
+                        if (solarSystem) solarSystem.focusOnPlanet('Earth');
+                        break;
+                    case 'Digit4':
+                        if (solarSystem) solarSystem.focusOnPlanet('Mars');
+                        break;
+                    case 'Digit5':
+                        if (solarSystem) solarSystem.focusOnPlanet('Jupiter');
+                        break;
+                    case 'Digit6':
+                        if (solarSystem) solarSystem.focusOnPlanet('Saturn');
+                        break;
+                    case 'Digit7':
+                        if (solarSystem) solarSystem.focusOnPlanet('Uranus');
+                        break;
+                    case 'Digit8':
+                        if (solarSystem) solarSystem.focusOnPlanet('Neptune');
+                        break;
+                }
+            });
+
+            // Click outside to close
+            document.addEventListener('click', function(event) {
+                if (sidebar.classList.contains('open') && 
+                    !sidebar.contains(event.target) && 
+                    !openBtn.contains(event.target)) {
+                    closeSidebar();
+                }
+            });
+        }
+
+        // Controls functionality
+        function initializeControls() {
+            // Master speed control
+            const masterSpeed = document.getElementById('master-speed');
+            const masterSpeedValue = document.getElementById('master-speed-value');
+            
+            if (masterSpeed && masterSpeedValue) {
+                masterSpeed.addEventListener('input', function() {
+                    const speed = parseFloat(this.value);
+                    masterSpeedValue.textContent = speed.toFixed(1) + 'x';
+                    
+                    if (solarSystem) {
+                        solarSystem.setSpeed(speed);
+                    }
+                });
+            }
+
+            // Pause/Resume button
+            const pauseBtn = document.getElementById('pause-all-btn');
+            if (pauseBtn) {
+                pauseBtn.addEventListener('click', function() {
+                    if (solarSystem) {
+                        const isPaused = solarSystem.togglePause();
+                        this.textContent = isPaused ? '▶️ Resume All' : '⏸️ Pause All';
+                    }
+                });
+            }
+
+            // Reset button
+            const resetBtn = document.getElementById('reset-all-btn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function() {
+                    if (masterSpeed) {
+                        masterSpeed.value = 1;
+                        masterSpeedValue.textContent = '1.0x';
+                    }
+                    
+                    if (solarSystem) {
+                        solarSystem.setSpeed(1);
+                        solarSystem.resetCamera();
+                        
+                        // Resume if paused
+                        if (solarSystem.paused) {
+                            solarSystem.togglePause();
+                            updatePauseButton();
+                        }
+                    }
+                });
+            }
+
+            // Preset buttons
+            const presetSlow = document.getElementById('preset-slow-btn');
+            const presetNormal = document.getElementById('preset-normal-btn');
+            const presetFast = document.getElementById('preset-fast-btn');
+
+            if (presetSlow) {
+                presetSlow.addEventListener('click', () => setPresetSpeed(0.3));
+            }
+            if (presetNormal) {
+                presetNormal.addEventListener('click', () => setPresetSpeed(1.0));
+            }
+            if (presetFast) {
+                presetFast.addEventListener('click', () => setPresetSpeed(2.5));
+            }
+
+            // Camera controls
+            const cameraReset = document.getElementById('camera-reset-btn');
+            const cameraTop = document.getElementById('camera-top-btn');
+            const cameraSide = document.getElementById('camera-side-btn');
+
+            if (cameraReset) {
+                cameraReset.addEventListener('click', function() {
+                    if (solarSystem) {
+                        solarSystem.resetCamera();
+                    }
+                });
+            }
+
+            if (cameraTop) {
+                cameraTop.addEventListener('click', function() {
+                    if (solarSystem && solarSystem.camera) {
+                        solarSystem.camera.position.set(0, 200, 0);
+                        solarSystem.camera.lookAt(0, 0, 0);
+                    }
+                });
+            }
+
+            if (cameraSide) {
+                cameraSide.addEventListener('click', function() {
+                    if (solarSystem && solarSystem.camera) {
+                        solarSystem.camera.position.set(200, 0, 0);
+                        solarSystem.camera.lookAt(0, 0, 0);
+                    }
+                });
+            }
+
+            // Camera speed control
+            const cameraSpeed = document.getElementById('camera-speed');
+            const cameraSpeedValue = document.getElementById('camera-speed-value');
+            
+            if (cameraSpeed && cameraSpeedValue) {
+                cameraSpeed.addEventListener('input', function() {
+                    const speed = parseFloat(this.value);
+                    cameraSpeedValue.textContent = speed.toFixed(1) + 'x';
+                    // Camera speed can be implemented for smooth camera movements
+                });
+            }
+        }
+
+        function setPresetSpeed(speed) {
+            const masterSpeed = document.getElementById('master-speed');
+            const masterSpeedValue = document.getElementById('master-speed-value');
+            
+            if (masterSpeed && masterSpeedValue) {
+                masterSpeed.value = speed;
+                masterSpeedValue.textContent = speed.toFixed(1) + 'x';
+                
+                if (solarSystem) {
+                    solarSystem.setSpeed(speed);
+                }
+            }
+        }
+
+        function updatePauseButton() {
+            const pauseBtn = document.getElementById('pause-all-btn');
+            if (pauseBtn && solarSystem) {
+                pauseBtn.textContent = solarSystem.paused ? '▶️ Resume All' : '⏸️ Pause All';
+            }
+        }
+
+        // Theme toggle functionality with enhanced sun brightness
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function() {
+                    document.body.classList.toggle('dark-theme');
+                    const isDark = document.body.classList.contains('dark-theme');
+                    themeToggle.textContent = isDark ? '☀️' : '🌙';
+                    
+                    // Save theme preference
+                    if (typeof(Storage) !== "undefined") {
+                        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                    }
+                    
+                    // Update solar system background and sun brightness
+                    if (solarSystem) {
+                        if (solarSystem.scene) {
+                            solarSystem.scene.background = new THREE.Color(isDark ? 0x000000 : 0x000011);
+                        }
+                        
+                        // Enhanced sun brightness control
+                        solarSystem.setSunBrightness(isDark);
+                    }
+                });
+                
+                // Load saved theme
+                if (typeof(Storage) !== "undefined") {
+                    const savedTheme = localStorage.getItem('theme');
+                    if (savedTheme === 'dark') {
+                        document.body.classList.add('dark-theme');
+                        themeToggle.textContent = '☀️';
+                        
+                        // Apply dark theme to solar system if it exists
+                        if (solarSystem) {
+                            solarSystem.setSunBrightness(true);
+                        }
+                    }
+                }
+            }
+        });
+
+        // Global functions for external access
+        window.getSolarSystem = function() {
+            return solarSystem;
+        };
+
+        window.toggleSolarSystemPause = function() {
+            if (solarSystem) {
+                const isPaused = solarSystem.togglePause();
+                updatePauseButton();
+                return isPaused;
+            }
+            return false;
+        };
+
+        window.setSolarSystemSpeed = function(speed) {
+            if (solarSystem) {
+                solarSystem.setSpeed(speed);
+                
+                // Update UI
+                const masterSpeed = document.getElementById('master-speed');
+                const masterSpeedValue = document.getElementById('master-speed-value');
+                if (masterSpeed && masterSpeedValue) {
+                    masterSpeed.value = speed;
+                    masterSpeedValue.textContent = speed.toFixed(1) + 'x';
+                }
+                return true;
+            }
+            return false;
+        };
+
+        window.focusOnPlanet = function(planetName) {
+            if (solarSystem) {
+                solarSystem.focusOnPlanet(planetName);
+                return true;
+            }
+            return false;
+        };
+
+        // Error handling for Three.js loading
+        window.addEventListener('error', function(event) {
+            if (event.message.includes('THREE') || event.filename.includes('three')) {
+                console.error('Three.js failed to load. Please check your internet connection.');
+                
+                // Hide loading screen and show error
+                const loadingScreen = document.getElementById('loading-screen');
+                if (loadingScreen) {
+                    loadingScreen.innerHTML = `
+                        <div class="loading-content">
+                            <h2 style="color: #ff4444;">Failed to Load 3D Library</h2>
+                            <p>Please check your internet connection and refresh the page.</p>
+                        </div>
+                    `;
+                }
+            }
+        });
+
+        // Performance monitoring
+        let frameCount = 0;
+        let lastTime = Date.now();
+        
+        setInterval(() => {
+            const currentTime = Date.now();
+            const fps = Math.round(frameCount * 1000 / (currentTime - lastTime));
+            
+            if (fps < 30 && solarSystem) {
+                console.warn('Low FPS detected:', fps);
+                // Could implement performance optimizations here
+            }
+            
+            frameCount = 0;
+            lastTime = currentTime;
+        }, 1000);
+
+        // Track frame count for performance monitoring
+        function trackFrameRate() {
+            frameCount++;
+            requestAnimationFrame(trackFrameRate);
+        }
+        trackFrameRate();
+
+    </script>
+</body>
+</html>
