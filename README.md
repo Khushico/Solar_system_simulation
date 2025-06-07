@@ -14,5 +14,5 @@ Interactive 3D solar system built with Three.js featuring real-time planetary co
 - 🎯 **Camera Controls** - Mouse drag, zoom, and preset views
 - ⌨️ **Keyboard Shortcuts** - Quick access to all functions
 
-## 🚀 Quick Start
+
 
